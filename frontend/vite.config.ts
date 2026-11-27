@@ -1,9 +1,10 @@
-/// <reference types="vitest" />
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const apiTarget = process.env.VITE_API_PROXY ?? 'http://localhost:8000'
+// Keep the browser's Host header (changeOrigin: false) so Django sees the same origin as the
+// page, just like behind Caddy in production. Otherwise CSRF origin checks reject logins.
+const apiTarget = { target: process.env.VITE_API_PROXY ?? 'http://localhost:8000', changeOrigin: false }
 
 export default defineConfig({
   plugins: [
@@ -24,6 +25,8 @@ export default defineConfig({
       workbox: {
         // Never cache API responses or auth endpoints in the service worker.
         navigateFallbackDenylist: [/^\/api\//, /^\/_allauth\//, /^\/admin\//],
+        // The Ketcher editor (~21 MB, includes the Indigo WASM engine) is loaded on demand, not precached.
+        globIgnores: ['**/ketcher-*.js', '**/ketcher-*.css'],
       },
     }),
   ],
