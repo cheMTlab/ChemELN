@@ -30,6 +30,11 @@ export default defineConfig({
       },
     }),
   ],
+  // Ketcher (and some of its dependencies) read Node globals at runtime; browsers have neither.
+  define: {
+    'process.env': {},
+    global: 'globalThis',
+  },
   server: {
     port: 5173,
     proxy: {

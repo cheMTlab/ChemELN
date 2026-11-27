@@ -6,10 +6,11 @@ import { createEditor, registerDefaultEditors, type StructureEditor } from '../c
 interface Props {
   opened: boolean
   onClose: () => void
-  /** Receives the drawn structure as a molfile. */
-  onSubmit: (molfile: string) => void
+  /** Receives the drawing: a molfile, or an RXN file when `mode="reaction"`. */
+  onSubmit: (data: string) => void
   editorKind: string
   initialMolfile?: string
+  mode?: 'molecule' | 'reaction'
   title?: string
   submitLabel?: string
 }
@@ -20,21 +21,25 @@ export default function StructureEditorModal({
   onSubmit,
   editorKind,
   initialMolfile,
+  mode = 'molecule',
   title = 'Draw structure',
   submitLabel = 'Use structure',
 }: Props) {
-  const hostRef = useRef<HTMLDivElement>(null)
+  // A callback ref (stored in state) rather than useRef: Mantine mounts the modal body after
+  // the open transition starts, so the element appears *after* the first effect run. With a
+  // plain ref the effect saw `null`, returned early and never re-ran (endless spinner).
+  const [host, setHost] = useState<HTMLDivElement | null>(null)
   const editorRef = useRef<StructureEditor | null>(null)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!opened || !hostRef.current) return
+    if (!opened || !host) return
     let cancelled = false
     registerDefaultEditors()
     setReady(false)
     setError(null)
-    createEditor(editorKind, hostRef.current)
+    createEditor(editorKind, host)
       .then(async (editor) => {
         if (cancelled) return editor.destroy()
         editorRef.current = editor
@@ -47,24 +52,31 @@ export default function StructureEditorModal({
       editorRef.current?.destroy()
       editorRef.current = null
     }
-  }, [opened, editorKind, initialMolfile])
+  }, [opened, host, editorKind, initialMolfile])
 
   async function submit() {
-    if (!editorRef.current) return
-    onSubmit(await editorRef.current.getMolfile())
-    onClose()
+    const editor = editorRef.current
+    if (!editor) return
+    try {
+      const data =
+        mode === 'reaction' && editor.getRxn ? await editor.getRxn() : await editor.getMolfile()
+      onSubmit(data)
+      onClose()
+    } catch (e) {
+      setError((e as Error).message || 'Could not read the drawing')
+    }
   }
 
   return (
     <Modal opened={opened} onClose={onClose} title={title} size="90%" centered>
-      {error && <Alert color="red">The structure editor could not start: {error}</Alert>}
-      <Box pos="relative" h="65vh">
+      {error && <Alert color="red">Structure editor: {error}</Alert>}
+      <Box pos="relative" h="70vh">
         {!ready && !error && (
           <Group justify="center" pos="absolute" inset={0}>
             <Loader />
           </Group>
         )}
-        <div ref={hostRef} style={{ width: '100%', height: '100%' }} />
+        <div ref={setHost} style={{ width: '100%', height: '100%' }} />
       </Box>
       <Group justify="flex-end" mt="md">
         <Button variant="default" onClick={onClose}>
