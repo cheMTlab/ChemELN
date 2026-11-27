@@ -15,7 +15,7 @@ Install Docker Engine and the Compose plugin: <https://docs.docker.com/engine/in
 
 ## 2. Install
 ```bash
-git clone https://github.com/chemtlab/chemtlab.git /opt/chemtlab
+git clone https://github.com/cheMTlab/ChemELN.git /opt/chemtlab
 cd /opt/chemtlab
 ./install.sh
 ```

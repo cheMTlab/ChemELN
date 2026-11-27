@@ -1,6 +1,6 @@
 site_name: CheMTlab documentation
 site_description: Open-source ELN and chemical inventory
-repo_url: https://github.com/chemtlab/chemtlab
+repo_url: https://github.com/cheMTlab/ChemELN
 theme:
   name: material
   features:
