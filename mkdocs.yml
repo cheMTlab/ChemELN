@@ -1,0 +1,18 @@
+site_name: CheMTlab documentation
+site_description: Open-source ELN and chemical inventory
+repo_url: https://github.com/chemtlab/chemtlab
+theme:
+  name: material
+  features:
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Installation: install.md
+  - Using the inventory: inventory.md
+  - Data safety: data-safety.md
+  - Roadmap:
+      - "M4 Screening & optimization": roadmap/m4-optimization.md
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.superfences

@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start PostgreSQL + RDKit
+        working-directory: docker/postgres-rdkit
+        run: |
+          docker build -t chemtlab-postgres .
+          docker run -d --name db -p 5432:5432 \
+            -e POSTGRES_DB=chemtlab -e POSTGRES_USER=chemtlab -e POSTGRES_PASSWORD=ci \
+            chemtlab-postgres
+          for i in $(seq 1 30); do docker exec db pg_isready -U chemtlab && break; sleep 2; done
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run python manage.py makemigrations --check --dry-run
+        env:
+          DATABASE_URL: postgres://chemtlab:ci@localhost:5432/chemtlab
+      - run: uv run pytest
+        env:
+          DATABASE_URL: postgres://chemtlab:ci@localhost:5432/chemtlab
+      - name: RDKit cartridge available
+        run: docker exec db psql -U chemtlab -d chemtlab -c "SELECT mol_from_smiles('c1ccccc1O');"
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  images:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build all images
+        run: cp .env.example .env && docker compose build

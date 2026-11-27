@@ -1,0 +1,50 @@
+#!/bin/sh
+# CheMTlab admin CLI. Run from the install directory, e.g.  ./chemtlab doctor
+set -eu
+cd "$(dirname "$0")"
+
+DC="docker compose"
+
+usage() {
+  cat <<EOF
+Usage: ./chemtlab <command>
+
+  status             Show running services
+  logs [service]     Follow logs
+  doctor             Check the instance is healthy and safely configured
+  createadmin        Create an instance administrator account
+  backup [--verify]  Take a backup now (optionally verify repository integrity)
+  snapshots          List available backups
+  restore [id]       Restore a backup (default: latest). DESTRUCTIVE
+  upgrade            Back up, pull/build new version, migrate, restart
+EOF
+}
+
+cmd="${1:-help}"
+[ "$#" -gt 0 ] && shift
+
+case "$cmd" in
+  status)      $DC ps ;;
+  logs)        $DC logs -f --tail=200 "$@" ;;
+  doctor)      $DC exec backend python manage.py doctor ;;
+  createadmin) $DC exec backend python manage.py createsuperuser ;;
+  backup)      $DC run --rm backup backup.sh "$@" ;;
+  snapshots)   $DC run --rm backup restic snapshots --tag chemtlab ;;
+  restore)
+    printf "This REPLACES the current database and files with backup '%s'. Type RESTORE to continue: " "${1:-latest}"
+    read -r answer
+    [ "$answer" = "RESTORE" ] || { echo "Aborted."; exit 1; }
+    $DC stop backend worker
+    $DC run --rm backup restore.sh "$@"
+    $DC start backend worker
+    ;;
+  upgrade)
+    echo "Taking a safety backup before upgrading..."
+    $DC run --rm backup backup.sh
+    git pull --ff-only
+    $DC up -d --build
+    $DC exec backend python manage.py doctor
+    ;;
+  help|-h|--help) usage ;;
+  *) usage; exit 1 ;;
+esac

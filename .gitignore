@@ -1,0 +1,36 @@
+# Secrets & local config
+.env
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.sqlite3
+backend/media/
+backend/staticfiles/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/src/api/schema.d.ts.bak
+
+# Optional proprietary editor files (never commit licensed code)
+frontend/public/vendor/marvinjs/
+
+# Backups / data
+backups/
+data/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+desktop.ini

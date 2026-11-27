@@ -1,0 +1,30 @@
+# Caddy gets and renews a Let's Encrypt certificate for CHEMTLAB_DOMAIN automatically.
+# Internal-only server (not reachable from the internet)? Add one of these inside the site block:
+#   tls internal                              (Caddy's own local CA)
+#   tls /certs/cert.pem /certs/key.pem        (your institution's certificate, mounted at /certs)
+{$CHEMTLAB_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+		-Server
+	}
+
+	@backend path /api/* /_allauth/* /admin/* /static/*
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		root * /srv/frontend
+		try_files {path} /index.html
+		file_server
+	}
+
+	request_body {
+		max_size 200MB
+	}
+}

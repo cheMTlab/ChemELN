@@ -1,0 +1,85 @@
+# CheMTlab production stack. Usage: ./install.sh  (or: docker compose up -d --build)
+# All data lives in the named volumes below, on this server. Backups go to CHEMTLAB_BACKUP_DIR.
+name: chemtlab
+
+x-backend: &backend
+  build: ./backend
+  image: ghcr.io/chemtlab/chemtlab-backend:${CHEMTLAB_VERSION:-latest}
+  env_file: .env
+  restart: unless-stopped
+  volumes:
+    - media:/data/media
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
+services:
+  db:
+    build: ./docker/postgres-rdkit
+    image: ghcr.io/chemtlab/chemtlab-postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+
+  backend:
+    <<: *backend
+
+  worker:
+    <<: *backend
+    command: ["celery", "-A", "chemtlab", "worker", "--loglevel=info"]
+    environment:
+      CHEMTLAB_SKIP_MIGRATE: "true"
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    image: ghcr.io/chemtlab/chemtlab-web:${CHEMTLAB_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      CHEMTLAB_DOMAIN: ${CHEMTLAB_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      - backend
+
+  backup:
+    build: ./docker/backup
+    image: ghcr.io/chemtlab/chemtlab-backup:${CHEMTLAB_VERSION:-latest}
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - media:/data/media
+      - ${CHEMTLAB_BACKUP_DIR:-./backups}:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  media:
+  caddydata:
+  caddyconfig:
