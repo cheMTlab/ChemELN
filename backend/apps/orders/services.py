@@ -71,7 +71,12 @@ def allowed_actions(user, order: Order) -> list[str]:
 
 def _log(order: Order, user, old: str, note: str = ""):
     OrderEvent.objects.create(
-        order=order, user=user, from_status=old, to_status=order.status, note=note[:500]
+        order=order,
+        user=user,
+        from_status=old,
+        to_status=order.status,
+        note=note[:500],
+        seq=order.events.count() + 1,
     )
 
 

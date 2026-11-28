@@ -73,8 +73,14 @@ def test_full_order_lifecycle(api, people, group, compound, lab):
     o = api.get(f"/api/orders/{order['id']}/").json()
     assert o["status"] == "received"
     assert len(o["container_barcodes"]) == 2
-    c = Container.objects.get(barcode=o["container_barcodes"][0])
-    assert c.lot_number == "L42" and c.supplier == "Acme" and c.group == group
+    lots = sorted(
+        Container.objects.filter(barcode__in=o["container_barcodes"]).values_list(
+            "lot_number", flat=True
+        )
+    )
+    assert lots == ["", "L42"]
+    c = Container.objects.get(lot_number="L42")
+    assert c.supplier == "Acme" and c.group == group and c.location == lab["flam"]
     events = api.get(f"/api/orders/{order['id']}/events/").json()
     assert [e["to_status"] for e in events] == [
         "submitted",

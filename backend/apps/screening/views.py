@@ -294,8 +294,11 @@ class ResponseViewSet(_ChildViewSet):
 
 
 class RunViewSet(_ChildViewSet):
+    """Runs of a campaign (unpaginated: campaigns are a few hundred runs at most)."""
+
     serializer_class = RunSerializer
     model = Run
+    pagination_class = None
 
     def perform_create(self, serializer):
         campaign = serializer.validated_data["campaign"]

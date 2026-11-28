@@ -25,5 +25,5 @@ Features that contact outside services are **off by default** and switched on pe
 ## Audit trail
 Every change to compounds, locations and containers is stored as a historical version with the user and time (django-simple-history). Containers also keep a readable activity log (created, moved, used, status changes). Non-admins cannot delete containers; they mark them "disposed", so nothing disappears silently.
 
-## Coming in later milestones
-- **M3:** signed ELN entries become immutable, hash-chained, with witness countersigning.
+## Signed notebook entries
+Signed ELN experiments are immutable. Each signature and witness countersignature is appended to a SHA-256 hash chain. *Verify signatures* detects any later change to the content, and a broken chain shows if the ledger itself was altered. Attachments are stored with their SHA-256 checksum. Orders, plasmids, strains, samples, plates and campaigns also keep a full change history.

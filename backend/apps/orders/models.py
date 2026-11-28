@@ -212,6 +212,8 @@ class OrderEvent(BaseModel):
     from_status = models.CharField(max_length=10, blank=True)
     to_status = models.CharField(max_length=10)
     note = models.CharField(max_length=500, blank=True)
+    # Explicit sequence: timestamps can tie (coarse clocks), the history order must not.
+    seq = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ["created_at"]
+        ordering = ["seq", "created_at"]

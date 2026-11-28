@@ -46,13 +46,52 @@ export interface InstanceConfig {
   ai_enabled: boolean
 }
 
+export type Role = 'admin' | 'pi' | 'member' | 'viewer'
+
+export type Capability =
+  | 'user_manager'
+  | 'purchasing'
+  | 'order_approver'
+  | 'safety_officer'
+  | 'inventory_manager'
+  | 'biosafety_officer'
+
 export interface Me {
   id: string
   email: string
   first_name: string
   last_name: string
   display_name: string
+  initials: string
+  job_title: string
+  phone: string
   orcid: string
   is_staff: boolean
-  memberships: { group_id: string; group_name: string; role: 'admin' | 'pi' | 'member' | 'viewer' }[]
+  capabilities: Capability[]
+  memberships: { id: string; group_id: string; group_name: string; role: Role }[]
+}
+
+/** JSON helpers on top of `api`. */
+export const post = <T = unknown>(path: string, body?: unknown) =>
+  api<T>(path, {
+    method: 'POST',
+    body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
+  })
+export const patch = <T = unknown>(path: string, body: unknown) =>
+  api<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
+export const del = (path: string) => api(path, { method: 'DELETE' })
+
+/** Turn a DRF error body into one readable line. */
+export function errorText(e: unknown): string {
+  if (!(e instanceof ApiError)) return e instanceof Error ? e.message : 'Something went wrong'
+  const b = e.body as unknown
+  if (!b) return `Error ${e.status}`
+  if (typeof b === 'string') return b
+  if (Array.isArray(b)) return b.join(' ')
+  return Object.entries(b as Record<string, unknown>)
+    .map(([k, v]) => {
+      const msg = Array.isArray(v) ? v.join(' ') : typeof v === 'object' ? JSON.stringify(v) : String(v)
+      return k === 'detail' || k === 'non_field_errors' ? msg : `${k}: ${msg}`
+    })
+    .join(' · ')
 }

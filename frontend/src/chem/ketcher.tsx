@@ -24,7 +24,8 @@ export const createKetcher: EditorFactory = (container) =>
             setMolfile: (molfile) => ketcher.setMolecule(molfile),
             getSmiles: () => ketcher.getSmiles(),
             getRxn: () => ketcher.getRxn(),
-            destroy: () => root.unmount(),
+            // Deferred: the modal closes during a React render; unmounting synchronously races it.
+            destroy: () => setTimeout(() => root.unmount(), 0),
           })
         }
       />,

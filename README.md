@@ -2,7 +2,7 @@
 
 **An open-source electronic lab notebook (ELN) with an interactive chemical inventory, built to be installed by any institution, anywhere.**
 
-CheMTlab is in early development. M0 (foundations) is done; M1 (inventory core) is in progress.
+CheMTlab is in early development. Working today: inventory with structure search, ELN with stoichiometry and signing, reagent orders, reaction screening & optimization, and a biology module (plasmids, strains, well plates, dose-response).
 
 ## Why
 Chemistry groups need to know what they have, where it is, how dangerous it is, and what they did with it. Existing tools are either closed source or hard to install and maintain. CheMTlab aims to be:
@@ -10,7 +10,7 @@ Chemistry groups need to know what they have, where it is, how dangerous it is, 
 - **Open**: AGPL-3.0. Free to use, study, modify, and host.
 - **Easy to install**: one server, one command (`install.sh`), Docker under the hood.
 - **Safe for your data**: everything lives on *your* institution's server. You get encrypted backups, a full audit trail, signed notebook entries, and institutional single sign-on (SSO).
-- **Useful**: inventory with structure search, barcode/QR scanning from phones, ELN with reaction stoichiometry linked to stock, instrument data capture, and FAIR data export.
+- **Useful**: inventory with structure search and ordering, ELN with reaction stoichiometry linked to stock, reaction optimization campaigns, a biology registry with well-plate assays, fine-grained permissions; later barcode scanning from phones, instrument data capture and FAIR export.
 
 ## How it is deployed
 ```
@@ -28,10 +28,10 @@ Chemistry groups need to know what they have, where it is, how dangerous it is, 
 | Milestone | Scope |
 |---|---|
 | M0 Foundations ✓ | Repo, Docker stack, accounts, institutions/groups/roles, API, CI |
-| **M1 Inventory core** | Compounds (RDKit), containers, locations, PubChem autofill, GHS, structure search, labels, import |
+| M1 Inventory core ✓ | Compounds (RDKit), containers, locations, PubChem autofill, GHS, structure search, labels, import, **reagent orders** with approvals and budgets |
 | M2 Mobile PWA | Camera scanning, stock-taking, offline queue |
-| M3 ELN | Experiments, reaction schemes, stoichiometry linked to inventory, signing/witnessing |
-| M4 Screening & optimization | Reaction optimization campaigns: variables, design of experiments, HTE plates, live monitoring graphs, models that suggest and extrapolate relations |
+| M3 ELN ✓ (first version) | Projects, experiments, reaction drawing, stoichiometry linked to inventory, product registration, attachments, hash-chained signing/witnessing |
+| M4 Screening & optimization ✓ (phase a) | Campaigns, designs (factorial, LHS…), HTE well maps, two-layer models, suggestions with extrapolation warnings; **bio screening**: plasmids, strains, oligos, plates, Z′, IC50 |
 | M5 Smart assist | Storage incompatibility checks, hazard warnings, reminders, optional LLM features |
 | M6 Instruments | Drop-folder agent, JCAMP-DX/Bruker/mzML, spectra viewer |
 | M7 Federation & FAIR | RO-Crate, Zenodo/Chemotion publishing, cross-institution sharing |

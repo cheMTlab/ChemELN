@@ -332,8 +332,10 @@ def analyse(variables: list[dict], response: dict, runs: list[dict]) -> dict:
         f"The model explains {metrics['r2'] * 100:.0f} % of the variation in {name} "
         f"(prediction quality {quality})."
     )
+    negligible = 0.02 * (float(Y.max()) - float(Y.min()))
     for imp in importance[:3]:
-        if imp["swing"] <= 0:
+        if imp["swing"] <= negligible:
+            plain.append(f"{imp['name']} has no noticeable effect on {name}.")
             continue
         if "curve" in imp:
             v = next(x for x in vars_ if x.id == imp["variable"])

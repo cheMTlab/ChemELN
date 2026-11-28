@@ -139,7 +139,7 @@ def test_campaign_api(api, make_user, member_of, group):
 
     res = api.post(f"/api/campaigns/{c['id']}/suggest/", {"k": 2, "add": True}, format="json")
     assert res.status_code == 200, res.json()
-    assert api.get("/api/campaign-runs/", {"campaign": c["id"]}).json()["count"] == 14
+    assert len(api.get("/api/campaign-runs/", {"campaign": c["id"]}).json()) == 14
     csv = api.get(f"/api/campaigns/{c['id']}/export/").content.decode()
     assert csv.splitlines()[0].startswith("run,plate,well,status,Temperature (°C),Solvent,Yield")
     assert y["goal"] == "maximize"

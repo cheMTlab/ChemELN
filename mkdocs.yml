@@ -8,7 +8,12 @@ theme:
 nav:
   - Home: index.md
   - Installation: install.md
+  - Lab notebook (ELN): eln.md
+  - Reaction screening: screening.md
+  - Biology, plates & assays: bio.md
   - Using the inventory: inventory.md
+  - Reagent orders: orders.md
+  - People & permissions: permissions.md
   - Data safety: data-safety.md
   - Roadmap:
       - "M4 Screening & optimization": roadmap/m4-optimization.md
