@@ -13,6 +13,10 @@ urlpatterns = [
     path("api/", include("apps.chemistry.urls")),
     path("api/", include("apps.locations.urls")),
     path("api/", include("apps.inventory.urls")),
+    path("api/", include("apps.orders.urls")),
+    path("api/", include("apps.eln.urls")),
+    path("api/", include("apps.screening.urls")),
+    path("api/", include("apps.bio.urls")),
 ]
 
 admin.site.site_header = "CheMTlab administration"

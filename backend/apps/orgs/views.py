@@ -65,6 +65,8 @@ class MembershipViewSet(
     def get_group(self) -> ResearchGroup:
         group = get_object_or_404(ResearchGroup, pk=self.kwargs["group_pk"])
         minimum = Role.VIEWER if self.request.method == "GET" else Role.PI
+        if self._is_user_manager():
+            return group
         if not has_group_role(self.request.user, group, minimum):
             # Hide existence of groups the user cannot see.
             if not has_group_role(self.request.user, group, Role.VIEWER):
@@ -91,7 +93,12 @@ class MembershipViewSet(
 
     def _guard_admin_escalation(self, role):
         """Only group admins (or staff) may grant the admin role."""
-        if role == Role.ADMIN and not has_group_role(
-            self.request.user, self.get_group(), Role.ADMIN
+        if role == Role.ADMIN and not (
+            self._is_user_manager()
+            or has_group_role(self.request.user, self.get_group(), Role.ADMIN)
         ):
             raise PermissionDenied("Only group admins can grant the admin role.")
+
+    def _is_user_manager(self) -> bool:
+        user = self.request.user
+        return user.is_authenticated and user.has_capability("user_manager")

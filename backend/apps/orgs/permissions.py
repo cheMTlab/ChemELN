@@ -30,6 +30,40 @@ def writable_group_ids(user) -> set:
     return set(qs.values_list("id", flat=True))
 
 
+def group_ids_with_role(user, minimum: str) -> set:
+    """Groups where the user holds at least `minimum` (staff: every group)."""
+    if not user.is_authenticated:
+        return set()
+    qs = ResearchGroup.objects.all()
+    if not user.is_staff:
+        allowed = [r for r, rank in ROLE_RANK.items() if rank >= ROLE_RANK[Role(minimum)]]
+        qs = qs.filter(memberships__user=user, memberships__role__in=allowed)
+    return set(qs.values_list("id", flat=True))
+
+
+def visible_group_ids(user) -> set:
+    """Groups whose notebooks, campaigns and bio records the user may read."""
+    return group_ids_with_role(user, Role.VIEWER)
+
+
+class GroupScopedPermission(BasePermission):
+    """For models with a `group` (or `group_lookup` path on the view): viewers read,
+    members write, and objects are hidden outside the user's groups via the queryset."""
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user.is_staff or bool(writable_group_ids(request.user))
+
+    def has_object_permission(self, request, view, obj):
+        group_id = getattr(view, "object_group_id", lambda o: o.group_id)(obj)
+        if request.method in SAFE_METHODS:
+            return request.user.is_staff or group_id in visible_group_ids(request.user)
+        return group_id in writable_group_ids(request.user)
+
+
 class IsContributorOrReadOnly(BasePermission):
     """Logged-in users read; users who are a member (or higher) of any group may write."""
 

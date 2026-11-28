@@ -9,9 +9,12 @@ def test_me_lists_memberships(api, make_user, member_of, group):
     api.force_authenticate(user)
     data = api.get("/api/me/").json()
     assert data["email"] == "user@example.org"
-    assert data["memberships"] == [
-        {"group_id": str(group.id), "group_name": "Synthesis Lab", "role": "pi"}
-    ]
+    [m] = data["memberships"]
+    assert {k: m[k] for k in ("group_id", "group_name", "role")} == {
+        "group_id": str(group.id),
+        "group_name": "Synthesis Lab",
+        "role": "pi",
+    }
 
 
 def test_users_only_see_their_groups(api, make_user, member_of, group):

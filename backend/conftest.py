@@ -5,6 +5,12 @@ from apps.accounts.models import User
 from apps.orgs.models import Department, Institution, Membership, ResearchGroup
 
 
+@pytest.fixture(autouse=True)
+def _media_in_tmp(settings, tmp_path):
+    """Uploaded files in tests never land in the real media folder."""
+    settings.MEDIA_ROOT = tmp_path / "media"
+
+
 @pytest.fixture
 def api():
     return APIClient()

@@ -38,6 +38,10 @@ INSTALLED_APPS = [
     "apps.chemistry",
     "apps.locations",
     "apps.inventory",
+    "apps.orders",
+    "apps.eln",
+    "apps.screening",
+    "apps.bio",
 ]
 
 MIDDLEWARE = [
